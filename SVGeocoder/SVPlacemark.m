@@ -3,7 +3,7 @@
 //  SVGeocoder
 //
 //  Created by Sam Vermette on 01.05.11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Copyright 2011 Sam Vermette. All rights reserved.
 //
 
 #import "SVPlacemark.h"
@@ -15,7 +15,7 @@
 
 - (id)initWithCoordinate:(CLLocationCoordinate2D)aCoordinate addressDictionary:(NSDictionary *)addressDictionary {
 	
-	if(self = [super initWithCoordinate:aCoordinate addressDictionary:addressDictionary])
+	if((self = [super initWithCoordinate:aCoordinate addressDictionary:addressDictionary]))
 		self.coordinate = aCoordinate;
 	
 	return self;

@@ -20,7 +20,7 @@
 
 // Reverse Geocoder
 - (SVGeocoder*)initWithCoordinate:(CLLocationCoordinate2D)coordinate;
- 
+
 // (forward) Geocoder
 - (SVGeocoder*)initWithAddress:(NSString *)address;
 - (SVGeocoder*)initWithAddress:(NSString *)address inBounds:(MKCoordinateRegion)bounds;
