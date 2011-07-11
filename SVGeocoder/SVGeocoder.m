@@ -21,20 +21,6 @@
 
 @synthesize delegate, requestString, responseData, rConnection, request;
 
-<<<<<<< HEAD
- 
-#pragma mark -
-
-- (void)dealloc {
-     
-    self.request = nil;
-    self.requestString = nil;
-     
-    [responseData release];
-    [rConnection release]; // is [rConnection cancel] implicit?
-     
-    [super dealloc];
-=======
 
 #pragma mark -
 
@@ -44,71 +30,53 @@
 	self.requestString = nil;
 	
 	[responseData release];
-	[rConnection release];
+	[rConnection release]; // is [rConnection cancel] implicit?
 	
 	[super dealloc];
->>>>>>> f2901f693a0f176060b88bc7a34c6fe241ff8ce5
 }
 
 #pragma mark -
 
 - (SVGeocoder*)initWithCoordinate:(CLLocationCoordinate2D)coordinate {
 	
-    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true", coordinate.latitude, coordinate.longitude];
-     
-    //NSLog(@"SVGeocoder -> %@", self.requestString);
- 
+	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true", coordinate.latitude, coordinate.longitude];
+	
+	//NSLog(@"SVGeocoder -> %@", self.requestString);
+
 	return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString *)address inBounds:(MKCoordinateRegion)region {
-<<<<<<< HEAD
-             
-    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
-=======
 			
 	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
->>>>>>> f2901f693a0f176060b88bc7a34c6fe241ff8ce5
 						  address,
-                          region.center.latitude-(region.span.latitudeDelta/2.0),
-                          region.center.longitude-(region.span.longitudeDelta/2.0),
-                          region.center.latitude+(region.span.latitudeDelta/2.0),
-                          region.center.longitude+(region.span.longitudeDelta/2.0)];
-     
-    //NSLog(@"SVGeocoder -> %@", self.requestString);
+						  region.center.latitude-(region.span.latitudeDelta/2.0),
+						  region.center.longitude-(region.span.longitudeDelta/2.0),
+						  region.center.latitude+(region.span.latitudeDelta/2.0),
+						  region.center.longitude+(region.span.longitudeDelta/2.0)];
+	
+	//NSLog(@"SVGeocoder -> %@", self.requestString);
 	
 	return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString *)address inRegion:(NSString *)regionString {
-<<<<<<< HEAD
-=======
 	
 	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&region=%@&sensor=true", 
 						  address,
 						  regionString];
 	
-	NSLog(@"SVGeocoder -> %@", self.requestString);
+	//NSLog(@"SVGeocoder -> %@", self.requestString);
 	
 	return self;
 }
->>>>>>> f2901f693a0f176060b88bc7a34c6fe241ff8ce5
 
-    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&region=%@&sensor=true", 
-                          address,
-                          regionString];
-	
-    //NSLog(@"SVGeocoder -> %@", self.requestString);
-     
-    return self;
-}
- 
 - (SVGeocoder*)initWithAddress:(NSString*)address {
-     
-    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
-     
-    //NSLog(@"SVGeocoder -> %@", self.requestString);
-     
+	
+	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
+	
+	//NSLog(@"SVGeocoder -> %@", self.requestString);
+	
 	return self;
 }
 
@@ -142,79 +110,19 @@
 
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-     
+	
 	NSError *jsonError = NULL;
 	NSDictionary *responseDict = [responseData objectFromJSONData];
 	
-<<<<<<< HEAD
-    NSArray *resultsArray = [responseDict valueForKey:@"results"]; 
-	
+    NSArray *resultsArray = [responseDict valueForKey:@"results"];    
+    
 	if(self.delegate == nil || responseDict == nil || resultsArray == nil || [resultsArray count] == 0) {
 		[self connection:connection didFailWithError:jsonError];
 		return;
 	}
-	
-    NSMutableArray *placemarksArray = [NSMutableArray arrayWithCapacity:[resultsArray count]];
-
-    for(NSDictionary *placemarkDict in resultsArray) {
-
-        NSDictionary *addressDict = [placemarkDict valueForKey:@"address_components"];
-        NSDictionary *coordinateDict = [[placemarkDict valueForKey:@"geometry"] valueForKey:@"location"];
-	
-		float lat = [[coordinateDict valueForKey:@"lat"] floatValue];
-		float lng = [[coordinateDict valueForKey:@"lng"] floatValue];
-		
-		NSMutableDictionary *formattedAddressDict = [[NSMutableDictionary alloc] init];
-		
-		for(NSDictionary *component in addressDict) {
-			
-			NSArray *types = [component valueForKey:@"types"];
-			
-			if([types containsObject:@"street_number"])
-				[formattedAddressDict setValue:[component valueForKey:@"long_name"] forKey:(NSString*)kABPersonAddressStreetKey];
-			
-			if([types containsObject:@"route"])
-				[formattedAddressDict setValue:[[formattedAddressDict valueForKey:(NSString*)kABPersonAddressStreetKey] stringByAppendingFormat:@" %@",[component valueForKey:@"long_name"]] forKey:(NSString*)kABPersonAddressStreetKey];
-			
-			if([types containsObject:@"locality"])
-				[formattedAddressDict setValue:[component valueForKey:@"long_name"] forKey:(NSString*)kABPersonAddressCityKey];
-			
-			if([types containsObject:@"administrative_area_level_1"])
-				[formattedAddressDict setValue:[component valueForKey:@"long_name"] forKey:(NSString*)kABPersonAddressStateKey];
-			
-			if([types containsObject:@"postal_code"])
-				[formattedAddressDict setValue:[component valueForKey:@"long_name"] forKey:(NSString*)kABPersonAddressZIPKey];
-			
-			if([types containsObject:@"country"]) {
-				[formattedAddressDict setValue:[component valueForKey:@"long_name"] forKey:(NSString*)kABPersonAddressCountryKey];
-				[formattedAddressDict setValue:[component valueForKey:@"short_name"] forKey:(NSString*)kABPersonAddressCountryCodeKey];
-			}
-		}
-	
-		SVPlacemark *placemark = [[SVPlacemark alloc] initWithCoordinate:CLLocationCoordinate2DMake(lat, lng) addressDictionary:formattedAddressDict];
-		[formattedAddressDict release];
-	
-        [placemarksArray addObject:placemark];
-        [placemark release];
-	}
-	
-	if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFindPlacemark:)])
-		[self.delegate geocoder:self didFindPlacemark:[placemarksArray objectAtIndex:0]];
-	 
-	else if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFindPlacemarks:)])
-		[self.delegate geocoder:self didFindPlacemarks:placemarksArray];
-}
-
- 
-=======
-    NSArray *resultsArray = [responseDict valueForKey:@"results"];    
+    
  	NSMutableArray *placemarksArray = [NSMutableArray arrayWithCapacity:[resultsArray count]];
-    
-	if(responseDict == nil || resultsArray == nil || [resultsArray count] == 0) {
-		[self connection:connection didFailWithError:jsonError];
-		return;
-	}
-    
+
     for(NSDictionary *placemarkDict in resultsArray) {
 	
         NSDictionary *addressDict = [placemarkDict valueForKey:@"address_components"];
@@ -265,21 +173,13 @@
 }
 
 
->>>>>>> f2901f693a0f176060b88bc7a34c6fe241ff8ce5
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
 	
 	//NSLog(@"SVGeocoder -> Failed with error: %@, (%@)", [error localizedDescription], [[request URL] absoluteString]);
-	
-<<<<<<< HEAD
-	if (self.delegate == nil)
-		return;
 
-	[self.delegate geocoder:self didFailWithError:error];
-}
-=======
-	[self.delegate geocoder:self didFailWithError:error];
+	if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFailWithError:)])
+		[self.delegate geocoder:self didFailWithError:error];
 }
 
->>>>>>> f2901f693a0f176060b88bc7a34c6fe241ff8ce5
 
 @end
