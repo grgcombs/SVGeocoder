@@ -6,9 +6,11 @@
 //
 
 #import "SVGeocoder.h" 
-#import "JSONKit.h"
+#import <RestKit/Support/JSON/JSONKit/JSONKit.h>
 
 @interface SVGeocoder ()
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
 
 @property (nonatomic, retain) NSString *requestString;
 @property (nonatomic, assign) NSMutableData *responseData;
@@ -24,35 +26,36 @@
 #pragma mark -
 
 - (SVGeocoder*)initWithCoordinate:(CLLocationCoordinate2D)coordinate {
+	if ((self = [super init])) {
+		requestString = [[NSString alloc] initWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true",
+						 coordinate.latitude, coordinate.longitude];
 	
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true", coordinate.latitude, coordinate.longitude];
-	
-	NSLog(@"SVGeocoder -> %@", self.requestString);
-
+		NSLog(@"SVGeocoder -> %@", requestString);
+	}
 	return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString *)address inRegion:(MKCoordinateRegion)region {
-			
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
+	if ((self = [super init])) {
+		requestString = [[NSString alloc] initWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
 						  address,
 						  region.center.latitude-(region.span.latitudeDelta/2.0),
 						  region.center.longitude-(region.span.longitudeDelta/2.0),
 						  region.center.latitude+(region.span.latitudeDelta/2.0),
 						  region.center.longitude+(region.span.longitudeDelta/2.0)];
 	
-	NSLog(@"SVGeocoder -> %@", self.requestString);
-	
+		NSLog(@"SVGeocoder -> %@", requestString);
+	}
 	return self;
 }
 
 
 - (SVGeocoder*)initWithAddress:(NSString*)address {
+	if ((self = [super init])) {
+		requestString = [[NSString alloc] initWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
 	
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
-	
-	NSLog(@"SVGeocoder -> %@", self.requestString);
-	
+		NSLog(@"SVGeocoder -> %@", requestString);
+	}
 	return self;
 }
 
@@ -78,12 +81,14 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
 	
+	if (!responseData)
+		return;
+	
 	[responseData appendData:data];
 }
 
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-	
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {	
 	NSError *jsonError = NULL;
 	NSDictionary *responseDict = [responseData objectFromJSONData];
 	
@@ -129,7 +134,9 @@
 	[formattedAddressDict release];
 	
 	NSLog(@"SVGeocoder -> Found Placemark");
-	[self.delegate geocoder:self didFindPlacemark:placemark];
+	if (self.delegate) {
+		[self.delegate geocoder:self didFindPlacemark:placemark];
+	}
 	[placemark release];
 }
 
@@ -137,17 +144,22 @@
 	
 	NSLog(@"SVGeocoder -> Failed with error: %@, (%@)", [error localizedDescription], [[request URL] absoluteString]);
 	
-	[self.delegate geocoder:self didFailWithError:error];
+	if (self.delegate) {
+		[self.delegate geocoder:self didFailWithError:error];
+	}
 }
 
 #pragma mark -
 
 - (void)dealloc {
-	
+	if (rConnection) {
+		[rConnection cancel];
+	}
 	self.request = nil;
-	
-	[responseData release];
-	[rConnection release];
+	self.requestString = nil;
+	self.delegate = nil;
+	nice_release(responseData);
+	nice_release(rConnection);
 	
 	[super dealloc];
 }
