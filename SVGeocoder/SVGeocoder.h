@@ -14,15 +14,17 @@
 
 @protocol SVGeocoderDelegate;
 
-@interface SVGeocoder : NSObject {
-
-}
+@interface SVGeocoder : NSObject
 
 @property (nonatomic, assign) id<SVGeocoderDelegate> delegate;
 
+// Reverse Geocoder
 - (SVGeocoder*)initWithCoordinate:(CLLocationCoordinate2D)coordinate;
-- (SVGeocoder*)initWithAddress:(NSString *)address inRegion:(MKCoordinateRegion)region;
+ 
+// (forward) Geocoder
 - (SVGeocoder*)initWithAddress:(NSString *)address;
+- (SVGeocoder*)initWithAddress:(NSString *)address inBounds:(MKCoordinateRegion)bounds;
+- (SVGeocoder*)initWithAddress:(NSString *)address inRegion:(NSString *)regionString;
 
 - (void)startAsynchronous;
 
@@ -31,7 +33,9 @@
 
 @protocol SVGeocoderDelegate
 
-- (void)geocoder:(SVGeocoder *)geocoder didFindPlacemark:(SVPlacemark *)placemark;
+@optional
+- (void)geocoder:(SVGeocoder *)geocoder didFindPlacemark:(SVPlacemark *)placemark; // SVPlacemark is an MKPlacemark subclass with a coordinate property
+- (void)geocoder:(SVGeocoder *)geocoder didFindPlacemarks:(NSArray *)placemarks; // array of SVPlacemark objects
 - (void)geocoder:(SVGeocoder *)geocoder didFailWithError:(NSError *)error;
 
 @end
