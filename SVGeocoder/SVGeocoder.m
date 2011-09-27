@@ -25,106 +25,96 @@
 #pragma mark -
 
 - (void)dealloc {
-	
-	self.request = nil;
-	self.requestString = nil;
-	
-	[responseData release];
-	[rConnection release]; // is [rConnection cancel] implicit?
-	
-	[super dealloc];
+    self.request = nil;
+    self.requestString = nil;
+    [responseData release];
+    [rConnection cancel];
+    [rConnection release];
+    [super dealloc];
 }
 
 #pragma mark -
 
 - (SVGeocoder*)initWithCoordinate:(CLLocationCoordinate2D)coordinate {
-	
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true", coordinate.latitude, coordinate.longitude];
-	
-	//NSLog(@"SVGeocoder -> %@", self.requestString);
-
-	return self;
+    
+    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&sensor=true", coordinate.latitude, coordinate.longitude];
+    
+    return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString *)address inBounds:(MKCoordinateRegion)region {
-			
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
-						  address,
-						  region.center.latitude-(region.span.latitudeDelta/2.0),
-						  region.center.longitude-(region.span.longitudeDelta/2.0),
-						  region.center.latitude+(region.span.latitudeDelta/2.0),
-						  region.center.longitude+(region.span.longitudeDelta/2.0)];
-	
-	//NSLog(@"SVGeocoder -> %@", self.requestString);
-	
-	return self;
+            
+    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&bounds=%f,%f|%f,%f&sensor=true", 
+                          address,
+                          region.center.latitude-(region.span.latitudeDelta/2.0),
+                          region.center.longitude-(region.span.longitudeDelta/2.0),
+                          region.center.latitude+(region.span.latitudeDelta/2.0),
+                          region.center.longitude+(region.span.longitudeDelta/2.0)];
+    
+    return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString *)address inRegion:(NSString *)regionString {
-	
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&region=%@&sensor=true", 
-						  address,
-						  regionString];
-	
-	//NSLog(@"SVGeocoder -> %@", self.requestString);
-	
-	return self;
+    
+    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&region=%@&sensor=true", 
+                          address,
+                          regionString];
+    
+    return self;
 }
 
 - (SVGeocoder*)initWithAddress:(NSString*)address {
-	
-	self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
-	
-	//NSLog(@"SVGeocoder -> %@", self.requestString);
-	
-	return self;
+    
+    self.requestString = [NSString stringWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true", address];
+    
+    return self;
 }
 
 #pragma mark -
 
 - (void)setDelegate:(id <SVGeocoderDelegate>)newDelegate {
-	
-	delegate = newDelegate;
+    
+    delegate = newDelegate;
 }
 
 
 - (void)startAsynchronous {
-	
-	NSString *escapedString = [self.requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-	self.request = [NSURLRequest requestWithURL:[NSURL URLWithString:escapedString]];
-	
-	responseData = [[NSMutableData alloc] init];
-	rConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
+    
+    NSString *escapedString = [self.requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    self.request = [NSURLRequest requestWithURL:[NSURL URLWithString:escapedString]];
+    
+    responseData = [[NSMutableData alloc] init];
+    rConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
 }
 
 #pragma mark -
 #pragma mark NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-	
-	if (responseData == nil || data == nil)
-		return;
-	
-	[responseData appendData:data];
+    
+    if (responseData == nil || data == nil)
+        return;
+    
+    [responseData appendData:data];
 }
 
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-	
-	NSError *jsonError = NULL;
-	NSDictionary *responseDict = [responseData objectFromJSONData];
-	
+    
+    NSError *jsonError = NULL;
+    NSDictionary *responseDict = [responseData objectFromJSONData];
+    
     NSArray *resultsArray = [responseDict valueForKey:@"results"];    
     
-	if(self.delegate == nil || responseDict == nil || resultsArray == nil || [resultsArray count] == 0) {
-		[self connection:connection didFailWithError:jsonError];
-		return;
-	}
+    if(self.delegate == nil || responseDict == nil || resultsArray == nil || [resultsArray count] == 0) {
+        [self connection:connection didFailWithError:jsonError];
+        return;
+    }
     
- 	NSMutableArray *placemarksArray = [NSMutableArray arrayWithCapacity:[resultsArray count]];
+     NSMutableArray *placemarksArray = [NSMutableArray arrayWithCapacity:[resultsArray count]];
 
     for(NSDictionary *placemarkDict in resultsArray) {
-	
+    
         NSDictionary *addressDict = [placemarkDict valueForKey:@"address_components"];
         NSDictionary *coordinateDict = [[placemarkDict valueForKey:@"geometry"] valueForKey:@"location"];
         
@@ -164,7 +154,7 @@
         [placemarksArray addObject:placemark];
         [placemark release];
     }
-	
+    
     if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFindPlacemark:)])
         [self.delegate geocoder:self didFindPlacemark:[placemarksArray objectAtIndex:0]];
     
@@ -174,11 +164,11 @@
 
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-	
-	//NSLog(@"SVGeocoder -> Failed with error: %@, (%@)", [error localizedDescription], [[request URL] absoluteString]);
+    
+    //NSLog(@"SVGeocoder -> Failed with error: %@, (%@)", [error localizedDescription], [[request URL] absoluteString]);
 
-	if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFailWithError:)])
-		[self.delegate geocoder:self didFailWithError:error];
+    if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFailWithError:)])
+        [self.delegate geocoder:self didFailWithError:error];
 }
 
 
