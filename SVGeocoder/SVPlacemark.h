@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import <MapKit/MapKit.h>
+#import <CoreLocation/CoreLocation.h>
 
-@interface SVPlacemark : MKPlacemark {
+@interface SVPlacemark : MKPlacemark;
 
-}
+- (instancetype)initWithPlacemark:(CLPlacemark *)placemark;
 
 @property (nonatomic, readwrite) CLLocationCoordinate2D coordinate;
 

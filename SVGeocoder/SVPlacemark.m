@@ -13,6 +13,16 @@
 
 @synthesize coordinate;
 
+- (instancetype)initWithPlacemark:(CLPlacemark *)placemark
+{
+    self = [super initWithPlacemark:placemark];
+    if (self)
+    {
+        self.coordinate = placemark.location.coordinate;
+    }
+    return self;
+}
+
 - (id)initWithCoordinate:(CLLocationCoordinate2D)aCoordinate addressDictionary:(NSDictionary *)addressDictionary {
 	
 	if((self = [super initWithCoordinate:aCoordinate addressDictionary:addressDictionary]))
