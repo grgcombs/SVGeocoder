@@ -6,14 +6,16 @@
 //
 
 #import "SVGeocoder.h" 
+#import <Foundation/Foundation.h>
+#import <CoreLocation/CoreLocation.h>
 #import <SLFRestKit/JSONKit.h>
 
 @interface SVGeocoder ()
 
-@property (nonatomic, retain) NSString *requestString;
-@property (nonatomic, assign) NSMutableData *responseData;
-@property (nonatomic, assign) NSURLConnection *rConnection;
-@property (nonatomic, retain) NSURLRequest *request;
+@property (nonatomic, strong) NSString *requestString;
+@property (nonatomic, strong) NSMutableData *responseData;
+@property (nonatomic, strong) NSURLConnection *rConnection;
+@property (nonatomic, strong) NSURLRequest *request;
 
 @end
 
@@ -25,12 +27,7 @@
 #pragma mark -
 
 - (void)dealloc {
-    self.request = nil;
-    self.requestString = nil;
-    [responseData release];
-    [rConnection cancel];
-    [rConnection release];
-    [super dealloc];
+    [self.rConnection cancel];
 }
 
 #pragma mark -
@@ -149,10 +146,8 @@
         }
         
         SVPlacemark *placemark = [[SVPlacemark alloc] initWithCoordinate:CLLocationCoordinate2DMake(lat, lng) addressDictionary:formattedAddressDict];
-        [formattedAddressDict release];
-        
+
         [placemarksArray addObject:placemark];
-        [placemark release];
     }
     
     if([(NSObject*)self.delegate respondsToSelector:@selector(geocoder:didFindPlacemark:)])
